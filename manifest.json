@@ -1,0 +1,14 @@
+{
+    "short_name": "Kasina",
+    "name": "Kasina",
+    "icons": [
+      {
+        "src": "kasina.gif",
+        "sizes": "1305x1149",
+        "type": "image/gif"
+      }
+    ],
+    "start_url": "index.html",
+    "display": "standalone",
+    "orientation": "landscape"
+  }

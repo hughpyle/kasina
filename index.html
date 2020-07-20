@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!--
+  http://sankhara.net/kasina/ - Kasina disc images
+
+  - near-realtime earth imagery from EPIC (https://epic.gsfc.nasa.gov/) 
+  - lunar visualizations from SVS (https://svs.gsfc.nasa.gov/4768) (note: 2020 only!)
+  - near-realtime solar imagery from SDAC (https://umbra.nascom.nasa.gov/newsite/images.html)
+
+  You may copy, modify and distribute this code as desired.
+-->
+<html style="overflow:hidden; background-color: black; cursor:none; color-scheme: light dark;">
+  <head>
+    <title>Kasina</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="viewport" content="viewport-fit=cover, user-scalable=no, width=device-width, initial-scale=1">
+    <meta name="twitter:site" content="@hughpyle" />
+    <meta name="twitter:title" content="Kasina" />
+    <meta name="twitter:description" content="Kasina disc images" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:image" content="http://sankhara.net/kasina/kasina.gif" />
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script type="text/JavaScript" src="current_moon.js"></script>
+    <script type="text/JavaScript" src="current_earth.js"></script>
+    <script type="text/JavaScript" src="current_sun.js"></script>
+    <style type="text/css">
+.moon {
+  width: 365px;
+  height: 365px;
+  padding: 20px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -183px 0 0 -183px;
+}
+.earth {
+  width: 440px;
+  height: 440px;
+  padding: 20px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -220px 0 0 -220px;
+}
+.sun {
+  width: 410px;
+  height: 410px;
+  padding: 20px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -205px 0 0 -205px;
+}
+    </style>
+    <script>get_moon_imagenum();</script>
+    <script>get_earth_image();</script>
+    <script>get_sun_image();</script>
+  </head>
+<body style="overflow:hidden; background-color: black; cursor:crosshair" onload="load()">
+  <div id="outer" style="background-color: black; width:99%; height:99%">
+    <div id="earth" class="earth" style="display:none">
+      <img id="earth_image" style="width:100%; height:100%" src="" onclick="press()"/>
+    </div>
+    <div id="moon" class="moon" style="display:none">
+      <img id="moon_image" style="width:100%; height:100%" src="" onclick="press()"/>
+    </div>
+    <div id="sun" class="sun" style="display:none">
+      <img id="sun_image" style="width:100%; height:100%" src="" onclick="press()"/>
+    </div>
+    <div id="circle" class="moon" style="display:none" onclick="press()">
+      <svg style="background:black; width:100%; height:100%">
+        <circle r="160px"  cx="182px"  cy="182px" style="fill:white; stroke:white"/>
+      </svg>
+    </div>
+    <div id="map_link" style="display:none"></div>
+  </div>
+</body>
+<script type="text/JavaScript">
+function load() {
+  $(window).on('orientationchange', refresh);
+  swap();
+  refresh();
+}
+function refresh() {
+  get_earth_image();
+  get_sun_image();
+  replace_moon_image()
+  setTimeout(refresh, 600000)
+}
+showing=2
+function swap() {
+  showing = (showing + 1) % 4;
+  document.getElementById("earth").style.display = showing==0 ? "block" : "none";
+  document.getElementById("moon").style.display = showing==1 ? "block" : "none";
+  document.getElementById("sun").style.display = showing==2 ? "block" : "none";
+  document.getElementById("circle").style.display = showing==3 ? "block" : "none";
+}
+function requestFullScreen() {
+  try {
+  var doc = window.document;
+  var docEl = doc.documentElement;
+  var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+  requestFullScreen.call(docEl);
+  } catch(err) {}
+}
+function press() {
+  requestFullScreen();
+  swap();
+  window.scrollTo(0, 1);
+}
+</script>
+</html>
