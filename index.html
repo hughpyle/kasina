@@ -26,7 +26,7 @@
     <script type="text/JavaScript" src="current_earth.js"></script>
     <script type="text/JavaScript" src="current_sun.js"></script>
     <style type="text/css">
-.moon {
+.moon, .color {
   width: 365px;
   height: 365px;
   padding: 20px;
@@ -69,7 +69,22 @@
     <div id="sun" class="sun" style="display:none">
       <img id="sun_image" style="width:100%; height:100%" src="" onclick="press()"/>
     </div>
-    <div id="circle" class="moon" style="display:none" onclick="press()">
+    <div id="blue" class="color" style="display:none" onclick="press()">
+      <svg style="background:black; width:100%; height:100%">
+        <circle r="160px"  cx="182px"  cy="182px" style="fill:blue; stroke:blue"/>
+      </svg>
+    </div>
+    <div id="yellow" class="color" style="display:none" onclick="press()">
+      <svg style="background:black; width:100%; height:100%">
+        <circle r="160px"  cx="182px"  cy="182px" style="fill:yellow; stroke:yellow"/>
+      </svg>
+    </div>
+    <div id="red" class="color" style="display:none" onclick="press()">
+      <svg style="background:black; width:100%; height:100%">
+        <circle r="160px"  cx="182px"  cy="182px" style="fill:red; stroke:red"/>
+      </svg>
+    </div>
+    <div id="white" class="color" style="display:none" onclick="press()">
       <svg style="background:black; width:100%; height:100%">
         <circle r="160px"  cx="182px"  cy="182px" style="fill:white; stroke:white"/>
       </svg>
@@ -91,11 +106,14 @@ function refresh() {
 }
 showing=2
 function swap() {
-  showing = (showing + 1) % 4;
+  showing = (showing + 1) % 7;
   document.getElementById("earth").style.display = showing==0 ? "block" : "none";
   document.getElementById("moon").style.display = showing==1 ? "block" : "none";
   document.getElementById("sun").style.display = showing==2 ? "block" : "none";
-  document.getElementById("circle").style.display = showing==3 ? "block" : "none";
+  document.getElementById("blue").style.display = showing==3 ? "block" : "none";
+  document.getElementById("yellow").style.display = showing==4 ? "block" : "none";
+  document.getElementById("red").style.display = showing==5 ? "block" : "none";
+  document.getElementById("white").style.display = showing==6 ? "block" : "none";
 }
 function requestFullScreen() {
   try {
