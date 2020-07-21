@@ -1,3 +1,5 @@
+// lunar visualizations from NASA SVS (https://svs.gsfc.nasa.gov/4768) (note: 2020 only!)
+
 /*
 ======================================================================
 current_moon.js
@@ -5,7 +7,6 @@ from: https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004768/current_moon.js
 
 Include this in the head node of the page.
 ====================================================================== */
-
 
 const moon_domain = "https://svs.gsfc.nasa.gov";
 const moon_path = "/vis/a000000/a004700/a004768/";
