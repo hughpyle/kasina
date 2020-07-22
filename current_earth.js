@@ -42,6 +42,7 @@ function get_earth_image() {
         $("#earth").attr("title", `Natural color image from DSCOVR's Earth Polychromatic Imaging Camera (EPIC) ${earth_imagedate}`)
         $("#earth_image").attr("src", image_url);
     }).catch(err => {
+        // The 'latest' data failed, we have another date in the error message, try that instead.
         $.getJSON(`https://epic.gsfc.nasa.gov/api/natural/date/${err.message}`)
         .then(data => {
             today = new Date();

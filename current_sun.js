@@ -7,6 +7,6 @@
 // from SOHO at the L1, but I prefer the coloring from SDO
 
 function get_sun_image() {
-    var url = "https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_HMIIC.jpg"
+    var url = `https://sdo.gsfc.nasa.gov/assets/img/latest/latest_1024_HMIIC.jpg?t=${Date.now()}`
     $("#sun_image").attr("src", url);
 }
