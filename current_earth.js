@@ -16,12 +16,14 @@ function get_earth_image() {
     .then(data => {
         // first element is the most recent
         today = new Date();
-        today_time = today.getUTCHours() * 24 + today.getUTCMinutes();
+        today_time = today.getUTCHours() * 60 + today.getUTCMinutes();
+        console.log(`today=${today.toUTCString()} ${today_time}`)
         best = 999999;
         for(var n=0; n<data.length; n++) {
             dt = data[n]["date"]
-            image_time = Number(dt.slice(11,13)) * 24 + Number(dt.slice(14,16))
+            image_time = Number(dt.slice(11,13)) * 60 + Number(dt.slice(14,16))
             delta = today_time - image_time
+            console.log(`(${n}) ${dt}=${image_time}, ${delta}`)
             if(delta >= 0 && delta < best) {
                 best = delta
                 earth_imagenum = data[n]["image"];
@@ -45,13 +47,15 @@ function get_earth_image() {
         // The 'latest' data failed, we have another date in the error message, try that instead.
         $.getJSON(`https://epic.gsfc.nasa.gov/api/natural/date/${err.message}`)
         .then(data => {
+            earth_imagedate = err.message;
             today = new Date();
-            today_time = today.getUTCHours() * 24 + today.getUTCMinutes();
+            today_time = today.getUTCHours() * 60 + today.getUTCMinutes();
             best = 999999;
             for(var n=0; n<data.length; n++) {
                 dt = data[n]["date"]
-                image_time = Number(dt.slice(11,13)) * 24 + Number(dt.slice(14,16))
+                image_time = Number(dt.slice(11,13)) * 60 + Number(dt.slice(14,16))
                 delta = today_time - image_time
+                console.log(`(${n}b) ${dt}=${image_time}, ${delta}`)
                 if(delta >= 0 && delta < best) {
                     best = delta
                     earth_imagenum = data[n]["image"];
