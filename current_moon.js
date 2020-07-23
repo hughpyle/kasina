@@ -56,9 +56,11 @@ function replace_moon_image()
    var fn = "000" + moon_imagenum;
    fn = fn.slice( fn.length - 4 );
 
-   var filename = moon_path + "frames/730x730_1x1_30p/moon." + fn + ".jpg";
-   var element = document.getElementById( "moon_image" );
-   element.src = moon_domain + filename;
+   var url = moon_domain + moon_path + "frames/730x730_1x1_30p/moon." + fn + ".jpg";
+   $("#moon_image").attr("src", url);
+
+   obliq = 0  // TODO calculate based on observer geolocation
+   $("#moon_image").attr("style", `transform:rotate(${obliq}deg)`);
 }
 
 get_moon_imagenum();

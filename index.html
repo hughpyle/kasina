@@ -3,6 +3,10 @@
   http://sankhara.net/kasina/ - Kasina disc images
 
   You may copy, modify and distribute this code as desired.
+
+  TODO:
+  - rotate the 'earth' picture to reflect the ecliptic (earth orbit path should be horizontal)
+  - rotate the 'moon' picture to reflect the observer's latitude
 -->
 <html style="overflow:hidden; background-color: black; cursor:none; color-scheme: light dark;">
   <head>
@@ -12,7 +16,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="viewport" content="viewport-fit=cover, user-scalable=no, width=device-width, initial-scale=0.8">
+    <meta name="viewport" content="viewport-fit=cover, user-scalable=no, minimal-ui, width=device-width, initial-scale=0.8">
     <meta name="twitter:site" content="@hughpyle" />
     <meta name="twitter:title" content="Kasiṇa" />
     <meta name="twitter:description" content="Kasina disc images" />
@@ -77,22 +81,22 @@
   left: 50%;
   margin: -156px 0px 0px -156px;
 }
+.moon img {width:100%; height:100%;}
+.earth img {width:100%; height:100%;}
+.sun2 img {width:100%; height:100%;}
     </style>
-    <script>get_moon_imagenum();</script>
-    <script>get_earth_image();</script>
-    <script>get_sun_image();</script>
   </head>
 <body style="width:100%; height:100%; overflow:hidden; cursor:crosshair" onload="load()">
   <div id="outer" style="background-color: black; width:100%; height:100%">
     <div id="earth" class="earth" style="display:none" title="Daily imagery collected by DSCOVR's Earth Polychromatic Imaging Camera (EPIC).">
-      <img id="earth_image" style="width:100%; height:100%" src="" onclick="press()" title=""/>
+      <img id="earth_image" src="" onclick="press()" title=""/>
     </div>
     <div id="moon" class="moon" style="display:none" title="Hourly visualization of the current lunar phase and libration by NASA's SVS.">
-      <img id="moon_image" style="width:100%; height:100%" src="" onclick="press()" title=""/>
+      <img id="moon_image" style="transform:rotate(30deg)" src="" onclick="press()" title=""/>
     </div>
     <div id="sun" class="sun" style="display:none" title="Near-Live image of the solar surface as seen by NASA's SDO.">
       <div id="sun2" class="sun2">
-        <img id="sun_image" style="width:100%; height:100%" src="" onclick="press()" title=""/>
+        <img id="sun_image" src="" onclick="press()" title=""/>
       </div>
     </div>
     <div id="blue" class="color" style="display:none" onclick="press()">
@@ -118,40 +122,47 @@
   </div>
 </body>
 <script type="text/JavaScript">
+showing=6
+const labels = ["earth", "moon", "sun", "blue", "yellow", "red", "white"];
 function load() {
-  $(window).on('orientationchange', refresh);
-  swap();
+  if(window.location.search) {
+    window.location.replace(window.location.pathname + "#" + window.location.search.substr(1));
+  }
+  $(window).on('orientationchange', ohc);
+  $(window).on('hashchange', ohc);
+  ohc();
   refresh();
 }
 function refresh() {
   get_earth_image();
   get_sun_image();
-  replace_moon_image()
-  setTimeout(refresh, 600000)
+  replace_moon_image();
+  setTimeout(refresh, 600000);
 }
-showing=5
-function swap() {
-  showing = (showing + 1) % 7;
-  document.getElementById("earth").style.display = showing==0 ? "block" : "none";
-  document.getElementById("moon").style.display = showing==1 ? "block" : "none";
-  document.getElementById("sun").style.display = showing==2 ? "block" : "none";
-  document.getElementById("blue").style.display = showing==3 ? "block" : "none";
-  document.getElementById("yellow").style.display = showing==4 ? "block" : "none";
-  document.getElementById("red").style.display = showing==5 ? "block" : "none";
-  document.getElementById("white").style.display = showing==6 ? "block" : "none";
+function ohc() {
+  showing = labels.indexOf(window.location.hash.substr(1));
+  if(showing < 0) {
+    showing = 6;
+  }
+  show();
 }
-function requestFullScreen() {
-  try {
-  var doc = window.document;
-  var docEl = doc.documentElement;
-  var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
-  requestFullScreen.call(docEl);
-  } catch(err) {}
+function show() {
+  for(var i=0; i<labels.length; i++) {
+    document.getElementById(labels[i]).style.display = showing==i ? "block" : "none";
+  }
+  window.scrollTo(0, 1);
+  window.location.hash = "#" + labels[showing];
 }
 function press() {
-  requestFullScreen();
-  swap();
-  window.scrollTo(0, 1);
+  showing = (showing + 1) % 7;
+  console.log(labels[showing]);
+  show();
+  try {
+    var doc = window.document;
+    var docEl = doc.documentElement;
+    var requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+    requestFullScreen.call(docEl, {navigationUI: "hide"});
+  } catch(err) {}
 }
 </script>
 </html>
