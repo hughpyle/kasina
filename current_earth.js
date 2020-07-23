@@ -22,7 +22,7 @@ function get_earth_image() {
         for(var n=0; n<data.length; n++) {
             dt = data[n]["date"]
             image_time = Number(dt.slice(11,13)) * 60 + Number(dt.slice(14,16))
-            delta = today_time - image_time
+            delta = (today_time - image_time) % 1440
             console.log(`(${n}) ${dt}=${image_time}, ${delta}`)
             if(delta >= 0 && delta < best) {
                 best = delta
@@ -54,7 +54,7 @@ function get_earth_image() {
             for(var n=0; n<data.length; n++) {
                 dt = data[n]["date"]
                 image_time = Number(dt.slice(11,13)) * 60 + Number(dt.slice(14,16))
-                delta = today_time - image_time
+                delta = (today_time - image_time) % 1440
                 console.log(`(${n}b) ${dt}=${image_time}, ${delta}`)
                 if(delta >= 0 && delta < best) {
                     best = delta
