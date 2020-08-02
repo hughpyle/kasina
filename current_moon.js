@@ -28,9 +28,8 @@ moon_year, the frame number is the (rounded) number of hours since the
 start of the year.  Otherwise it's 1.
 ====================================================================== */
 
-function get_moon_imagenum()
+function get_moon_imagenum(now)
 {
-   var now = new Date();
    var year = now.getUTCFullYear();
    if ( year != moon_year ) {
       moon_imagenum = 1;
@@ -53,14 +52,33 @@ img element with ID "moon_image" and replace its src and alt values.
 
 function replace_moon_image()
 {
+   show_moon(new Date(2020,06,24), parseFloat($("#latitude").text()));
+
+   // July test comparisons
+   // show_moon(new Date(2020, 06, 25), 42.3);  // 2020-07-25 Boston  https://twitter.com/jackdaryl/status/1287380078729539586
+   // show_moon(new Date(2020, 06, 26), 40.6); // 2020-07-26 NYC https://twitter.com/marmax_nyc/status/1287726813662380033
+   // show_moon(new Date(2020, 06, 24), 14.1);  // 2020-07-24 Laguna, Philippines https://twitter.com/rapplerdotcom/status/1288635662997041160
+   // show_moon(new Date(2020, 06, 25), 12.3);  // 2020-07-25 Masbate, Philippines https://twitter.com/rapplerdotcom/status/1288618046354075648
+   // show_moon(new Date(2020, 06, 22), -36.1);  // 2020-07-22 Wodonga, Aus https://twitter.com/MichaelCoonan8/status/1287542795142488065
+   // show_moon(new Date(2020, 06, 22), 47.6);  // Seattle, WA https://twitter.com/DaGr8Brendinni/status/1288535190978011136
+
+   // January
+   // show_moon(new Date(2020, 01, 27), 54.9);  // Gateshead, UK https://twitter.com/DavidBflower/status/1233144084979765250
+   // show_moon(new Date(2020, 01, 27), 13.0);  // Philippines https://twitter.com/ABSCBNNews/status/1233029338330611718
+   // show_moon(new Date(2020, 01, 25), -41.3);  // Wellington NZ https://twitter.com/theartofnight/status/1232224142939672576
+}
+
+function show_moon(date, latitude)
+{
+   get_moon_imagenum(date);
    var fn = "000" + moon_imagenum;
    fn = fn.slice( fn.length - 4 );
 
    var url = moon_domain + moon_path + "frames/730x730_1x1_30p/moon." + fn + ".jpg";
    $("#moon_image").attr("src", url);
 
-   obliq = 0  // TODO calculate based on observer geolocation
+   var obliq = 90-latitude
    $("#moon_image").attr("style", `transform:rotate(${obliq}deg)`);
 }
 
-get_moon_imagenum();
+get_moon_imagenum(new Date(2020, 06, 24));

@@ -7,7 +7,6 @@
 
   TODO:
   - rotate the 'earth' picture to reflect the ecliptic (earth orbit path should be horizontal)
-  - rotate the 'moon' picture to reflect the observer's latitude
 -->
 <html style="overflow:hidden; background-color: black; cursor:none; color-scheme: light dark;">
   <head>
@@ -120,17 +119,31 @@
         <circle r="240px"  cx="273px"  cy="273px" style="fill:white; stroke:white"/>
       </svg>
     </div>
+    <div id="data" style="display:none">
+      <div id="latitude">42.52</div>
+      <div id="longitude">-70.89</div>
+    </div>
   </div>
 </body>
 <script type="text/JavaScript">
 showing=6
 const labels = ["earth", "moon", "sun", "blue", "yellow", "red", "white"];
+function geo(position) {
+  const latitude  = position.coords.latitude;
+  const longitude = position.coords.longitude;
+  $("#latitude").text(`${latitude}`)
+  $("#longitude").text(`${longitude}`)
+  refresh()
+}
 function load() {
   if(window.location.search) {
     window.location.replace(window.location.pathname + "#" + window.location.search.substr(1));
   }
   $(window).on('orientationchange', ohc);
   $(window).on('hashchange', ohc);
+  if(navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(geo);
+  }
   ohc();
   refresh();
 }
