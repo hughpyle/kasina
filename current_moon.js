@@ -80,5 +80,3 @@ function show_moon(date, latitude)
    var obliq = 90-latitude
    $("#moon_image").attr("style", `transform:rotate(${obliq}deg)`);
 }
-
-get_moon_imagenum(new Date(2020, 06, 24));
