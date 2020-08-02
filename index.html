@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-  http://sankhara.net/kasina/ - Kasina disc images
+  https://sankhara.net/kasina/ - Kasina disc images
   https://github.com/hughpyle/kasina - source code repository
 
   You may copy, modify and distribute this code as desired.
@@ -21,7 +21,7 @@
     <meta name="twitter:title" content="Kasiṇa" />
     <meta name="twitter:description" content="Kasina disc images" />
     <meta name="twitter:card" content="summary" />
-    <meta name="twitter:image" content="http://sankhara.net/kasina/kasina.gif" />
+    <meta name="twitter:image" content="https://sankhara.net/kasina/kasina.gif" />
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script type="text/JavaScript" src="current_moon.js"></script>
     <script type="text/JavaScript" src="current_earth.js"></script>
@@ -129,6 +129,7 @@
 showing=6
 const labels = ["earth", "moon", "sun", "blue", "yellow", "red", "white"];
 function geo(position) {
+  // Used to rotate the apparent angle of the moon depending on your latitude
   const latitude  = position.coords.latitude;
   const longitude = position.coords.longitude;
   $("#latitude").text(`${latitude}`)
