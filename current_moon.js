@@ -52,7 +52,7 @@ img element with ID "moon_image" and replace its src and alt values.
 
 function replace_moon_image()
 {
-   show_moon(new Date(2020,06,24), parseFloat($("#latitude").text()));
+   show_moon(new Date(), parseFloat($("#latitude").text()));
 
    // July test comparisons
    // show_moon(new Date(2020, 06, 25), 42.3);  // 2020-07-25 Boston  https://twitter.com/jackdaryl/status/1287380078729539586
