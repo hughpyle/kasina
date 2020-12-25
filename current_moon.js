@@ -1,4 +1,4 @@
-// lunar visualizations from NASA SVS (https://svs.gsfc.nasa.gov/4768) (note: 2020 only!)
+// lunar visualizations from NASA SVS (https://svs.gsfc.nasa.gov/4768)
 
 /*
 ======================================================================
