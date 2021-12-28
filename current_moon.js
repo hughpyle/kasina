@@ -6,6 +6,7 @@ current_moon.js
 from:
 (2020) https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004768/current_moon.js
 (2021) https://svs.gsfc.nasa.gov/vis/a000000/a004800/a004874/current_moon.js
+(2022) https://svs.gsfc.nasa.gov/vis/a000000/a004900/a004955/current_moon.js
 
 Include this in the head node of the page.
 ====================================================================== */
@@ -22,6 +23,12 @@ const moon_data = {
    2021: {
       "year": 2021,
       "path": "/vis/a000000/a004800/a004874/",
+      "febdays": 28,
+      "nimages": 8760
+   },
+   2022: {
+      "year": 2022,
+      "path": "/vis/a000000/a004900/a004955/",
       "febdays": 28,
       "nimages": 8760
    }
@@ -44,6 +51,7 @@ start of the year.  Otherwise it's 1.
 
 function get_moon_imagenum(now)
 {
+   // now.setFullYear(2023)
    var year = now.getUTCFullYear();
    if ( !(year in moon_data)) {
       moon_path = moon_data[2020]["path"]
@@ -53,7 +61,12 @@ function get_moon_imagenum(now)
    var janone = Date.UTC( year, 0, 1, 0, 0, 0 );
    moon_path = moon_data[year]["path"]
    moon_imagenum = 1 + Math.round(( now.getTime() - janone ) / 3600000.0 );
-   if ( moon_imagenum > moon_data[year]["nimages"] ) moon_imagenum = moon_data[year]["nimages"];
+   if ( moon_imagenum < 1 ) {
+      moon_imagenum = 1
+   }
+   if ( moon_imagenum > moon_data[year]["nimages"] ) {
+      moon_imagenum = moon_data[year]["nimages"];
+   }
    return false;
 }
 
