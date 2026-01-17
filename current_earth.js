@@ -7,11 +7,33 @@ var baseurl = "https://epic.gsfc.nasa.gov/archive/natural"
 var basepath = "https://epic.gsfc.nasa.gov/archive/natural/2015/10/31"
 
 
-const earth_obliquity=23.44
+const earth_obliquity = 23.44;
 
+function get_earth_obliquity(date) {
+    // Calculate rotation angle to make ecliptic horizontal
+    // The Earth's axis is tilted 23.44° from the ecliptic normal.
+    // As seen from the Sun (DSCOVR's position at L1), the apparent
+    // sideways tilt varies through the year:
+    // - At equinoxes: maximum sideways tilt (±23.44°)
+    // - At solstices: axis points toward/away from camera (0° sideways)
+    const year = date.getUTCFullYear();
+    const vernalEquinox = Date.UTC(year, 2, 20); // March 20
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const daysSinceEquinox = (date.getTime() - vernalEquinox) / msPerDay;
+
+    // Full year = 2π radians
+    const yearAngle = (daysSinceEquinox / 365.25) * 2 * Math.PI;
+
+    // Cosine gives max at equinoxes, zero at solstices
+    return earth_obliquity * Math.cos(yearAngle);
+}
 
 function update_earth_image(data) {
     console.log(data);
+    if (!data || !data["date"]) {
+        console.log("No earth image data available");
+        return;
+    }
     currdate = new Date();
     dt = data["date"];
     imagetime = Date.UTC(
@@ -25,7 +47,8 @@ function update_earth_image(data) {
     $("#earth").attr("title", `${data["caption"]}, ${hours_ago} hours ago (${dt})`);
     $("#earth_image").attr("src", image_url);
 
-    obliq = 0  // TODO calculate based on the season
+    obliq = get_earth_obliquity(new Date());
+    console.log(`Earth obliquity: ${obliq.toFixed(2)}°`);
     $("#earth_image").attr("style", `transform:rotate(${obliq}deg)`);
 }
 

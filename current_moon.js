@@ -1,111 +1,141 @@
-// lunar visualizations from NASA SVS (https://svs.gsfc.nasa.gov/4768)
-
-/*
-======================================================================
-current_moon.js
-from:
-(2020) https://svs.gsfc.nasa.gov/vis/a000000/a004700/a004768/current_moon.js
-(2021) https://svs.gsfc.nasa.gov/vis/a000000/a004800/a004874/current_moon.js
-(2022) https://svs.gsfc.nasa.gov/vis/a000000/a004900/a004955/current_moon.js
-
-Include this in the head node of the page.
-====================================================================== */
-
-const moon_domain = "https://svs.gsfc.nasa.gov";
-
-const moon_data = {
-   2020: {
-      "year": 2020,
-      "path": "/vis/a000000/a004700/a004768/",
-      "febdays": 29,
-      "nimages": 8784
-   },
-   2021: {
-      "year": 2021,
-      "path": "/vis/a000000/a004800/a004874/",
-      "febdays": 28,
-      "nimages": 8760
-   },
-   2022: {
-      "year": 2022,
-      "path": "/vis/a000000/a004900/a004955/",
-      "febdays": 28,
-      "nimages": 8760
-   }
-}
-
-/* write once, read many, so that the image and the stats are for
-   the same date/time */
-var moon_path;
-var moon_imagenum;
+// lunar visualizations from NASA SVS
+// (2026) https://svs.gsfc.nasa.gov/5587
+// using the dial-a-moon API
+// https://svs.gsfc.nasa.gov/help/#apis-dialamoon
 
 
 /*
 ======================================================================
-get_moon_imagenum()
+fetch_moon_image()
 
-Initialize the frame number.  If the current date is within the year
-moon_year, the frame number is the (rounded) number of hours since the
-start of the year.  Otherwise it's 1.
+Fetch the Moon image dynamically using the Dial-a-Moon API.
 ====================================================================== */
 
-function get_moon_imagenum(now)
-{
-   // now.setFullYear(2023)
-   var year = now.getUTCFullYear();
-   if ( !(year in moon_data)) {
-      moon_path = moon_data[2020]["path"]
-      moon_imagenum = 1;
-      return false;
-   }
-   var janone = Date.UTC( year, 0, 1, 0, 0, 0 );
-   moon_path = moon_data[year]["path"]
-   moon_imagenum = 1 + Math.round(( now.getTime() - janone ) / 3600000.0 );
-   if ( moon_imagenum < 1 ) {
-      moon_imagenum = 1
-   }
-   if ( moon_imagenum > moon_data[year]["nimages"] ) {
-      moon_imagenum = moon_data[year]["nimages"];
-   }
-   return false;
-}
+async function fetch_moon_image(date, latitude) {
+   const timestamp = date.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:mm
+   const apiUrl = `https://svs.gsfc.nasa.gov/api/dialamoon/${timestamp}`;
 
+   console.log(`Fetching Moon image for timestamp: ${timestamp}, latitude: ${latitude}`);
+
+   try {
+      const response = await fetch(apiUrl);
+      if (!response.ok) {
+         throw new Error(`API request failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      const imageUrl = data.image.url; // Use standard resolution image
+      const altText = data.image.alt_text;
+      const posAngle = data.posangle;
+
+      console.log(`API response: ${altText}, Position Angle: ${posAngle}`);
+
+      // Calculate the final rotation angle based on latitude
+      const finalAngle = posAngle + (90 - latitude);
+
+      // Update the Moon image in the DOM
+      $("#moon_image").attr("src", imageUrl);
+      $("#moon_image").attr("alt", altText);
+      $("#moon_image").attr("style", `transform:rotate(${finalAngle}deg)`);
+
+      console.log(`Moon image updated: ${imageUrl}, Final Rotation Angle: ${finalAngle}`);
+   } catch (error) {
+      console.error("Failed to fetch moon image:", error);
+   }
+}
 
 /*
 ======================================================================
 replace_moon_image()
 
-Replace the Moon image.  Uses the Document Object Model to find the
-img element with ID "moon_image" and replace its src and alt values.
+Replace the Moon image using the new fetch_moon_image function.
 ====================================================================== */
 
-function replace_moon_image()
-{
-   show_moon(new Date(), parseFloat($("#latitude").text()));
-
-   // July test comparisons
-   // show_moon(new Date(2020, 06, 25), 42.3);  // 2020-07-25 Boston  https://twitter.com/jackdaryl/status/1287380078729539586
-   // show_moon(new Date(2020, 06, 26), 40.6); // 2020-07-26 NYC https://twitter.com/marmax_nyc/status/1287726813662380033
-   // show_moon(new Date(2020, 06, 24), 14.1);  // 2020-07-24 Laguna, Philippines https://twitter.com/rapplerdotcom/status/1288635662997041160
-   // show_moon(new Date(2020, 06, 25), 12.3);  // 2020-07-25 Masbate, Philippines https://twitter.com/rapplerdotcom/status/1288618046354075648
-   // show_moon(new Date(2020, 06, 22), -36.1);  // 2020-07-22 Wodonga, Aus https://twitter.com/MichaelCoonan8/status/1287542795142488065
-   // show_moon(new Date(2020, 06, 22), 47.6);  // Seattle, WA https://twitter.com/DaGr8Brendinni/status/1288535190978011136
-
-   // January
-   // show_moon(new Date(2020, 01, 27), 54.9);  // Gateshead, UK https://twitter.com/DavidBflower/status/1233144084979765250
-   // show_moon(new Date(2020, 01, 27), 13.0);  // Philippines https://twitter.com/ABSCBNNews/status/1233029338330611718
-   // show_moon(new Date(2020, 01, 25), -41.3);  // Wellington NZ https://twitter.com/theartofnight/status/1232224142939672576
+function replace_moon_image() {
+   const date = new Date();
+   const latitude = parseFloat($("#latitude").text());
+   fetch_moon_image(date, latitude);
 }
 
-function show_moon(date, latitude)
-{
-   get_moon_imagenum(date);
-   var fn = "000" + moon_imagenum;
-   fn = fn.slice( fn.length - 4 );
+/* Enhance location functionality with a nicer prompt and fallback handling */
+function getUserLocation() {
+   if (!navigator.geolocation) {
+      console.warn("Geolocation is not supported by this browser.");
+      $("#latitude").text("0.00");
+      replace_moon_image();
+      return;
+   }
 
-   var url = moon_domain + moon_path + "frames/730x730_1x1_30p/moon." + fn + ".jpg";
-   $("#moon_image").attr("src", url);
-
-   var obliq = 90-latitude
-   $("#moon_image").attr("style", `transform:rotate(${obliq}deg)`);
+   navigator.geolocation.getCurrentPosition(
+      (position) => {
+         const latitude = position.coords.latitude;
+         console.log(`User's latitude: ${latitude}`);
+         $("#latitude").text(latitude.toFixed(2));
+         replace_moon_image();
+      },
+      (error) => {
+         console.error("Error retrieving location:", error);
+         console.log("Unable to retrieve your location. Defaulting to latitude 0.");
+         $("#latitude").text("0.00");
+         replace_moon_image();
+      }
+   );
 }
+
+/* Adjust auto-update interval during eclipses */
+function startMoonImageAutoUpdate() {
+   let updateInterval = 3600000; // Default: 1 hour in milliseconds
+
+   async function updateMoon() {
+      console.log("Checking for eclipse conditions.");
+
+      const date = new Date();
+      const timestamp = date.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:mm
+      const apiUrl = `https://svs.gsfc.nasa.gov/api/dialamoon/${timestamp}`;
+
+      try {
+         const response = await fetch(apiUrl);
+         if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+         }
+
+         const data = await response.json();
+         const obscuration = data.obscuration || 0; // Default to 0 if not provided
+
+         if (obscuration > 0) {
+            console.log("Eclipse detected. Adjusting update interval to 1 minute.");
+            updateInterval = 60000; // 1 minute in milliseconds
+         } else {
+            updateInterval = 3600000; // Reset to 1 hour
+         }
+
+         // Update image using fetched data directly to avoid redundant API call
+         const latitude = parseFloat($("#latitude").text());
+         const imageUrl = data.image.url;
+         const altText = data.image.alt_text;
+         const posAngle = data.posangle;
+         const finalAngle = posAngle + (90 - latitude);
+
+         $("#moon_image").attr("src", imageUrl);
+         $("#moon_image").attr("alt", altText);
+         $("#moon_image").attr("style", `transform:rotate(${finalAngle}deg)`);
+
+         console.log(`Moon image updated: ${imageUrl}, Final Rotation Angle: ${finalAngle}`);
+      } catch (error) {
+         console.error("Failed to update Moon image:", error);
+         // Retain the previous image and do not interrupt the user
+      }
+
+      // Schedule next update with potentially adjusted interval
+      setTimeout(updateMoon, updateInterval);
+   }
+
+   // Start the first scheduled update
+   setTimeout(updateMoon, updateInterval);
+}
+
+// Start automatic Moon image updates on page load
+$(document).ready(() => {
+   getUserLocation();
+   startMoonImageAutoUpdate();
+});
