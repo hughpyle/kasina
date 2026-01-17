@@ -99,20 +99,28 @@ function updateMoonDOM(data, latitude) {
    const posAngle = data.posangle;
    const finalAngle = posAngle + (90 - latitude);
 
+   const userLongitude = parseFloat($("#longitude").text());
+   let locationInfo = "";
+
+   if (!isNaN(userLongitude)) {
+      console.log(`Calculating Moon location for user longitude: ${userLongitude}`);
+      const azimuth = (data.subearth_lon - userLongitude + 360) % 360;
+      direction = getCardinalDirection(azimuth);
+
+      const elevation = Math.round(data.subearth_lat);
+      const elevationDescription = elevation >= 0
+         ? `${elevation}° above the horizon`
+         : `${Math.abs(elevation)}° below the horizon`;
+
+      locationInfo = `The Moon is to the ${direction}, ${elevationDescription}.`;
+      console.log(locationInfo);
+   }
+
+   $("#moon").attr("title", `Hourly visualization of the current lunar phase and libration by NASA's SVS. ${locationInfo}`);
    $("#moon_image").attr("src", imageUrl);
-   $("#moon_image").attr("alt", altText);
+   $("#moon_image").attr("alt", `${altText}`);
    $("#moon_image").attr("style", `transform:rotate(${finalAngle}deg)`);
 
-   const userLongitude = parseFloat($("#longitude").text());
-   const azimuth = (data.subearth_lon - userLongitude + 360) % 360;
-   const direction = getCardinalDirection(azimuth);
-
-   const elevation = Math.round(data.subearth_lat);
-   const elevationDescription = elevation >= 0
-      ? `${elevation}° above the horizon`
-      : `${Math.abs(elevation)}° below the horizon`;
-
-   console.log(`The Moon is to the ${direction}, ${elevationDescription}.`);
 }
 
 /*
@@ -159,8 +167,7 @@ function replace_moon_image() {
 /* Enhance location functionality with a nicer prompt and fallback handling */
 function getUserLocation() {
    if (!navigator.geolocation) {
-      console.warn("Geolocation is not supported by this browser.");
-      $("#latitude").text("0.00");
+      console.warn("Geolocation is not available");
       replace_moon_image();
       return;
    }
@@ -174,7 +181,6 @@ function getUserLocation() {
       },
       (error) => {
          console.error("Error retrieving location:", error);
-         $("#latitude").text("0.00");
          replace_moon_image();
       }
    );
