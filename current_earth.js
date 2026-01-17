@@ -6,13 +6,6 @@ var earth_imagedate;
 var baseurl = "https://epic.gsfc.nasa.gov/archive/natural"
 var basepath = "https://epic.gsfc.nasa.gov/archive/natural/2015/10/31"
 
-/*
-EPIC API response example: (may contain ~20 items)
-
-[{"identifier":"20260107001751","caption":"This image was taken by NASA's EPIC camera onboard the NOAA DSCOVR spacecraft","image":"epic_1b_20260107001751","version":"04","centroid_coordinates":{"lat":-28.608398,"lon":-176.462402},"dscovr_j2000_position":{"x":496828.204685,"y":-1112967.809855,"z":-666533.0093},"lunar_j2000_position":{"x":-340444.515992,"y":152563.608736,"z":70112.392747},"sun_j2000_position":{"x":41365191.08522,"y":-129523856.572511,"z":-56146469.886368},"attitude_quaternions":{"q0":0.56664,"q1":0.70319,"q2":0.42944,"q3":0.0049},"date":"2026-01-07 00:13:03","coords":{"centroid_coordinates":{"lat":-28.608398,"lon":-176.462402},"dscovr_j2000_position":{"x":496828.204685,"y":-1112967.809855,"z":-666533.0093},"lunar_j2000_position":{"x":-340444.515992,"y":152563.608736,"z":70112.392747},"sun_j2000_position":{"x":41365191.08522,"y":-129523856.572511,"z":-56146469.886368},"attitude_quaternions":{"q0":0.56664,"q1":0.70319,"q2":0.42944,"q3":0.0049}}},
-{"identifier":"20260107020553","caption":"This image was taken by NASA's EPIC camera onboard the NOAA DSCOVR spacecraft","image":"epic_1b_20260107020553","version":"04","centroid_coordinates":{"lat":-28.564453,"lon":156.555176},"dscovr_j2000_position":{"x":499227.600469,"y":-1112281.850227,"z":-666284.057488},"lunar_j2000_position":{"x":-343757.796371,"y":147473.293291,"z":67263.412871},"sun_j2000_position":{"x":41553549.127267,"y":-129473313.080854,"z":-56124570.999988},"attitude_quaternions":{"q0":0.56592,"q1":0.70307,"q2":0.43058,"q3":0.00554},"date":"2026-01-07 02:01:05","coords":{"centroid_coordinates":{"lat":-28.564453,"lon":156.555176},"dscovr_j2000_position":{"x":499227.600469,"y":-1112281.850227,"z":-666284.057488},"lunar_j2000_position":{"x":-343757.796371,"y":147473.293291,"z":67263.412871},"sun_j2000_position":{"x":41553549.127267,"y":-129473313.080854,"z":-56124570.999988},"attitude_quaternions":{"q0":0.56592,"q1":0.70307,"q2":0.43058,"q3":0.00554}}}]
-*/
-
 
 const earth_obliquity = 23.44;
 
@@ -60,27 +53,58 @@ function update_earth_image(data) {
 }
 
 function get_earth_image() {
-    // Natural-spectrum Earth images from EPIC are typically delayed by a few days.
-    // Pick the most recent available image.
+    /*
+    Natural-spectrum Earth images from EPIC are typically delayed by a few days.
+    Find the most recent data, then pick the image that's nearest to the current time-of-day.
+    */
     $.getJSON('https://epic.gsfc.nasa.gov/api/natural')
     .then(data => {
-        // Find the most recent image by full datetime
-        let latest = null;
-        let latestTime = 0;
-        for (var n = 0; n < data.length; n++) {
+        // first element is the most recent
+        today = new Date();
+        today_time = today.getUTCHours() * 60 + today.getUTCMinutes();
+        console.log(`today=${today.toUTCString()} ${today_time}`);
+        best = 999999;
+        result = {};
+        for(var n=0; n<data.length; n++) {
             dt = data[n]["date"];
-            imageTime = Date.UTC(
-                Number(dt.slice(0,4)), Number(dt.slice(5,7))-1, Number(dt.slice(8,10)),
-                Number(dt.slice(11,13)), Number(dt.slice(14,16)), Number(dt.slice(17,19))
-            );
-            console.log(`(${n}) ${dt} = ${imageTime}`);
-            if (imageTime > latestTime) {
-                latestTime = imageTime;
-                latest = data[n];
+            image_time = Number(dt.slice(11,13)) * 60 + Number(dt.slice(14,16));
+            delta = (1440 + today_time - image_time) % 1440;
+            console.log(`(${n}) ${dt}=${image_time}, ${delta}`);
+            if(delta >= 0 && delta < best) {
+                best = delta;
+                result = data[n];
             }
         }
-        update_earth_image(latest);
+        // If the best time-delta is more than 2 hours, the 'latest' dataset doesn't have enough data
+        // so fetch the previous day's data and try that instead
+        if(best > 120) {
+            dt = new Date(Date.UTC(Number(dt.slice(0,4)), Number(dt.slice(5,7))-1, Number(dt.slice(8,10))));
+            dt.setDate(dt.getDate()-1);
+            ds = `${dt.getFullYear()}-${('00' + (dt.getMonth() + 1)).slice(-2)}-${('00' + dt.getDate()).slice(-2)}`;
+            throw new Error(ds);
+        }
+        update_earth_image(result);
     }).catch(err => {
-        console.log("Failed to fetch earth image:", err);
+        // The 'latest' data failed, we have another date in the error message, try that instead.
+        console.log(err)
+        $.getJSON(`https://epic.gsfc.nasa.gov/api/natural/date/${err.message}`)
+        .then(data => {
+            earth_imagedate = err.message;
+            today = new Date();
+            today_time = today.getUTCHours() * 60 + today.getUTCMinutes();
+            best = 999999;
+            result = {}
+            for(var n=0; n<data.length; n++) {
+                dt = data[n]["date"];
+                image_time = Number(dt.slice(11,13)) * 60 + Number(dt.slice(14,16));
+                delta = (1440 + today_time - image_time) % 1440;
+                console.log(`(${n}b) ${dt}=${image_time}, ${delta}`);
+                if(delta >= 0 && delta < best) {
+                    best = delta;
+                    result = data[n];
+                }
+            }
+            update_earth_image(result);
+        });
     });
 }
