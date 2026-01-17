@@ -3,6 +3,117 @@
 // using the dial-a-moon API
 // https://svs.gsfc.nasa.gov/help/#apis-dialamoon
 
+/* dial-a-moon API docs:
+
+As an example, consider the following request:
+https://svs.gsfc.nasa.gov/api/dialamoon/2023-07-12T15:37
+Note: even though the time requested is 15:37 UTC, the API will always round that to the closest point it has data for. In this case, 15:37 becomes 16:00. This is also true during eclipses, where the increments switch to 1 minute instead of 1 hour.
+
+{
+    "image": {
+        "url": "https://svs.gsfc.nasa.gov/vis/a000000/a005000/a005048/frames/730x730_1x1_30p/moon.4625.jpg",
+        "filename": "frames/730x730_1x1_30p/moon.4625.jpg",
+        "media_type": "Image",
+        "alt_text": "An image of the moon, as it would appear on 2023-07-12 16:00:00+00:00. (Frame: 4625)",
+        "width": 730,
+        "height": 730,
+        "pixels": 532900
+    },
+    "image_highres": {
+        "url": "https://svs.gsfc.nasa.gov/vis/a000000/a005000/a005048/frames/5760x3240_16x9_30p/fancy/comp.4625.tif",
+        "filename": "frames/5760x3240_16x9_30p/fancy/comp.4625.tif",
+        "media_type": "Image",
+        "alt_text": "An image of the moon, as it would appear on 2023-07-12 16:00:00+00:00. (Frame: 4625)",
+        "width": 5760,
+        "height": 3240,
+        "pixels": 18662400
+    },
+    "su_image": {
+        "url": "https://svs.gsfc.nasa.gov/vis/a000000/a005000/a005049/frames/730x730_1x1_30p/moon.4625.jpg",
+        "filename": "frames/730x730_1x1_30p/moon.4625.jpg",
+        "media_type": "Image",
+        "alt_text": "An image of the moon, as it would appear on 2023-07-12 16:00:00+00:00. (Frame: 4625)",
+        "width": 730,
+        "height": 730,
+        "pixels": 532900
+    },
+    "su_image_highres": {
+        "url": "https://svs.gsfc.nasa.gov/vis/a000000/a005000/a005049/frames/5760x3240_16x9_30p/fancy/comp.4625.tif",
+        "filename": "frames/5760x3240_16x9_30p/fancy/comp.4625.tif",
+        "media_type": "Image",
+        "alt_text": "An image of the moon, as it would appear on 2023-07-12 16:00:00+00:00. (Frame: 4625)",
+        "width": 5760,
+        "height": 3240,
+        "pixels": 18662400
+    },
+    "time": "2023-07-12T16:00",
+    "phase": 23.81,
+    "obscuration": 0.0,
+    "age": 24.474,
+    "diameter": 1845.5,
+    "distance": 388369.0,
+    "j2000_ra": 3.2364,
+    "j2000_dec": 19.875,
+    "subsolar_lon": -115.103,
+    "subsolar_lat": 1.525,
+    "subearth_lon": 6.457,
+    "subearth_lat": -2.417,
+    "posangle": 346.15
+}
+					
+The response will always contain the following fields:
+
+image - An image of the Moon at the requested timestamp. This follows the same format as the media items from the visualization page API.
+image_highres - A higher resolution image of the Moon (often annotated with some additional information) at the requested timestamp. This follows the same format as the media items from the visualization page API.
+su_image - The south-up version of image.
+su_image_highres - The south-up version of image_highres.
+time - The timestamp corresponding to the data fetched.
+phase - The illuminated percentage of the Moon, as seen from Earth. 0.00 represents a new moon and 100.00 represents a full moon.
+obscuration - The percentage of the Moon inside the Earth's umbra shadow.
+Note: this is only used during Eclipses, and is 0.0 during all other times.
+age - The age (in days) since the start of the current lunar cycle.
+diameter - The current diameter (in arcseconds) of the Moon, as it appears from Earth.
+distance - The distance of the Moon (in kilometers) from Earth.
+j2000_ra - The J2000 right ascension (in degrees) of the Moon at the requested timestamp.
+j2000_dec - The J2000 declination (in degrees) of the Moon at the requested timestamp.
+subsolar_lon, subsolar_lat - The longitude and latitude (in degrees) of the subsolar point on the Moon at the requested timestamp. This can be thought of as the point on the Moon where the Sun is directly overhead.
+subearth_lon, subearth_lat - Like the subsolar point, but for the Earth instead of the Sun. These angles define the libration in longitude and latitude (in degrees).
+posangle - The position angle of the north polar axis. This is the tilt of the Moon relative to its line of right ascension, or the north celestial pole, measured counterclockwise.
+*/
+
+
+function getCardinalDirection(azimuth) {
+   if (azimuth >= 337.5 || azimuth < 22.5) return "north";
+   if (azimuth >= 22.5 && azimuth < 67.5) return "northeast";
+   if (azimuth >= 67.5 && azimuth < 112.5) return "east";
+   if (azimuth >= 112.5 && azimuth < 157.5) return "southeast";
+   if (azimuth >= 157.5 && azimuth < 202.5) return "south";
+   if (azimuth >= 202.5 && azimuth < 247.5) return "southwest";
+   if (azimuth >= 247.5 && azimuth < 292.5) return "west";
+   return "northwest";
+}
+
+function updateMoonDOM(data, latitude) {
+   const imageUrl = data.image.url;
+   const altText = data.image.alt_text;
+   const posAngle = data.posangle;
+   const finalAngle = posAngle + (90 - latitude);
+
+   $("#moon_image").attr("src", imageUrl);
+   $("#moon_image").attr("alt", altText);
+   $("#moon_image").attr("style", `transform:rotate(${finalAngle}deg)`);
+
+   const userLongitude = parseFloat($("#longitude").text());
+   const azimuth = (data.subearth_lon - userLongitude + 360) % 360;
+   const direction = getCardinalDirection(azimuth);
+
+   const elevation = Math.round(data.subearth_lat);
+   const elevationDescription = elevation >= 0
+      ? `${elevation}° above the horizon`
+      : `${Math.abs(elevation)}° below the horizon`;
+
+   console.log(`The Moon is to the ${direction}, ${elevationDescription}.`);
+}
 
 /*
 ======================================================================
@@ -24,21 +135,9 @@ async function fetch_moon_image(date, latitude) {
       }
 
       const data = await response.json();
-      const imageUrl = data.image.url; // Use standard resolution image
-      const altText = data.image.alt_text;
-      const posAngle = data.posangle;
+      console.log(`API response: ${data.image.alt_text}, Position Angle: ${data.posangle}`);
 
-      console.log(`API response: ${altText}, Position Angle: ${posAngle}`);
-
-      // Calculate the final rotation angle based on latitude
-      const finalAngle = posAngle + (90 - latitude);
-
-      // Update the Moon image in the DOM
-      $("#moon_image").attr("src", imageUrl);
-      $("#moon_image").attr("alt", altText);
-      $("#moon_image").attr("style", `transform:rotate(${finalAngle}deg)`);
-
-      console.log(`Moon image updated: ${imageUrl}, Final Rotation Angle: ${finalAngle}`);
+      updateMoonDOM(data, latitude);
    } catch (error) {
       console.error("Failed to fetch moon image:", error);
    }
@@ -75,7 +174,6 @@ function getUserLocation() {
       },
       (error) => {
          console.error("Error retrieving location:", error);
-         console.log("Unable to retrieve your location. Defaulting to latitude 0.");
          $("#latitude").text("0.00");
          replace_moon_image();
       }
@@ -109,21 +207,10 @@ function startMoonImageAutoUpdate() {
             updateInterval = 3600000; // Reset to 1 hour
          }
 
-         // Update image using fetched data directly to avoid redundant API call
          const latitude = parseFloat($("#latitude").text());
-         const imageUrl = data.image.url;
-         const altText = data.image.alt_text;
-         const posAngle = data.posangle;
-         const finalAngle = posAngle + (90 - latitude);
-
-         $("#moon_image").attr("src", imageUrl);
-         $("#moon_image").attr("alt", altText);
-         $("#moon_image").attr("style", `transform:rotate(${finalAngle}deg)`);
-
-         console.log(`Moon image updated: ${imageUrl}, Final Rotation Angle: ${finalAngle}`);
+         updateMoonDOM(data, latitude);
       } catch (error) {
          console.error("Failed to update Moon image:", error);
-         // Retain the previous image and do not interrupt the user
       }
 
       // Schedule next update with potentially adjusted interval
