@@ -158,10 +158,32 @@ function ohc() {
   }
   show();
 }
+function crossfadeTransition(currentId, nextId) {
+  const $currentElement = $(`#${currentId}`);
+  const $nextElement = $(`#${nextId}`);
+
+  // Ensure the next element is visible but fully transparent
+  $nextElement.css({ display: "block", opacity: 0, transition: `opacity ${Math.E}s ease-in-out` });
+
+  // Start the crossfade transition
+  setTimeout(() => {
+    $currentElement.css({ transition: `opacity ${Math.E}s ease-in-out`, opacity: 0 });
+    $nextElement.css({ opacity: 1 });
+  }, 0);
+
+  // After the transition, hide the current element
+  setTimeout(() => {
+    $currentElement.css({ display: "none", opacity: 1, transition: "none" }); // Reset styles for future transitions
+  }, Math.E * 1000); // Match the transition duration
+}
+
 function show() {
-  for(var i=0; i<labels.length; i++) {
-    document.getElementById(labels[i]).style.display = showing==i ? "block" : "none";
-  }
+  const previousIndex = (showing - 1 + labels.length) % labels.length;
+  const currentId = labels[previousIndex];
+  const nextId = labels[showing];
+
+  crossfadeTransition(currentId, nextId);
+
   window.scrollTo(0, 1);
   window.location.hash = "#" + labels[showing];
 }
