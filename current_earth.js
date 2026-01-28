@@ -28,26 +28,48 @@ function get_earth_obliquity(date) {
     return earth_obliquity * Math.cos(yearAngle);
 }
 
+function formatTimestampAndElapsedTime(imageDate) {
+    const options = { weekday: 'long', hour: 'numeric', minute: '2-digit', timeZoneName: 'short' };
+    const formattedTimestamp = imageDate.toLocaleString('en-US', options);
+
+    const now = new Date();
+    const elapsedMs = now - imageDate;
+    const elapsedHours = Math.floor(elapsedMs / (1000 * 60 * 60));
+    const elapsedMinutes = Math.floor((elapsedMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    const elapsedTime = `${elapsedHours} hours ${elapsedMinutes} minutes ago`;
+    return `${formattedTimestamp} (${elapsedTime})`;
+}
+
 function update_earth_image(data) {
     console.log(data);
     if (!data || !data["date"]) {
         console.log("No earth image data available");
         return;
     }
-    currdate = new Date();
-    dt = data["date"];
-    imagetime = Date.UTC(
-        Number(dt.slice(0,4)), Number(dt.slice(5,7))-1, Number(dt.slice(8,10)),
-        Number(dt.slice(11,13)), Number(dt.slice(14,16))-1, Number(dt.slice(17,19))
+
+    const currdate = new Date();
+    const dt = data["date"];
+    const imageDate = new Date(
+        Date.UTC(
+            Number(dt.slice(0, 4)),
+            Number(dt.slice(5, 7)) - 1,
+            Number(dt.slice(8, 10)),
+            Number(dt.slice(11, 13)),
+            Number(dt.slice(14, 16)),
+            Number(dt.slice(17, 19))
+        )
     );
-    basepath = `${baseurl}/${dt.slice(0,4)}/${dt.slice(5,7)}/${dt.slice(8,10)}`;
+
+    const basepath = `${baseurl}/${dt.slice(0, 4)}/${dt.slice(5, 7)}/${dt.slice(8, 10)}`;
     earth_imagenum = data["image"];
-    image_url = `${basepath}/jpg/${earth_imagenum}.jpg`;
-    hours_ago = Number((currdate - imagetime) / 3600000).toFixed(1);
-    $("#earth").attr("title", `${data["caption"]}, ${hours_ago} hours ago (${dt})`);
+    const image_url = `${basepath}/jpg/${earth_imagenum}.jpg`;
+
+    const hoverText = formatTimestampAndElapsedTime(imageDate);
+    $("#earth").attr("title", `${data["caption"]}, ${hoverText}`);
     $("#earth_image").attr("src", image_url);
 
-    obliq = get_earth_obliquity(new Date());
+    const obliq = get_earth_obliquity(new Date());
     console.log(`Earth obliquity: ${obliq.toFixed(2)}°`);
     $("#earth_image").attr("style", `transform:rotate(${obliq}deg)`);
 }
