@@ -93,6 +93,16 @@ function getCardinalDirection(azimuth) {
    return "northwest";
 }
 
+function calculateElevation(subearthLat, observerLatitude) {
+   console.log(`Calculating elevation: subearthLat=${subearthLat}, observerLatitude=${observerLatitude}`);
+
+   // Correct elevation calculation using the observer's latitude and Moon's subearth latitude
+   const elevation = subearthLat + observerLatitude;
+   console.log(`Corrected elevation: ${elevation}`);
+
+   return Math.round(elevation);
+}
+
 function updateMoonDOM(data, latitude) {
    const imageUrl = data.image.url;
    const altText = data.image.alt_text;
@@ -107,7 +117,7 @@ function updateMoonDOM(data, latitude) {
       const azimuth = (data.subearth_lon - userLongitude + 360) % 360;
       direction = getCardinalDirection(azimuth);
 
-      const elevation = Math.round(data.subearth_lat);
+      const elevation = calculateElevation(data.subearth_lat, latitude);
       const elevationDescription = elevation >= 0
          ? `${elevation}° above the horizon`
          : `${Math.abs(elevation)}° below the horizon`;
